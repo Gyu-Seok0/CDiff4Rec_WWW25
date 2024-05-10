@@ -80,15 +80,12 @@ def set_random_seed(random_seed):
     np.random.seed(random_seed)
     random.seed(random_seed)
 
-# 각 행의 norm을 계산하여 정규화
 def get_cos_similarity_mat(M):
     row_norms = np.sqrt((M.multiply(M)).sum(axis=1))
     norm_M = M / np.clip(row_norms, a_min=1e-8, a_max=None)
 
-    # 코사인 유사도 계산
     similarity = cosine_similarity(norm_M)
 
-    # 대각선 원소를 0으로 설정
     np.fill_diagonal(similarity, 0.0)
     
     return torch.tensor(similarity)
