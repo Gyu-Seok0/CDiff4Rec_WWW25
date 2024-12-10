@@ -3,8 +3,6 @@
 ### 1. Overview
 This repository provides the source code of our paper: Collaborative Diffusion Model for Recommender System (CDiff4Rec).
 
-To effectively address the loss of personalized information and seamlessly integrate rich item side information into diffusion recommender, CDiff4Rec leverages preference information from personalized real and pseudo users through the personalized and global attention mechanism, enhancing personalization.
-
 <img src="./figure/method.png">
 
 ### 2. Usage
