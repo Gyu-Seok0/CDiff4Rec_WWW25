@@ -30,9 +30,12 @@ For more details, refer to the environment.yml file.
 ### 4. Citation
 If you use this code or our method in your research, please cite our paper:
 
+```bibtex
 @article{lee2025collaborative,
   title={Collaborative Diffusion Model for Recommender System},
   author={Lee, Gyuseok and Zhu, Yaochen and Yu, Hwanjo and Zhou, Yao and Li, Jundong},
   journal={arXiv preprint arXiv:2501.18997},
   year={2025}
 }
+```
+
