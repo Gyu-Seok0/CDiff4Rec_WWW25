@@ -14,7 +14,7 @@ Follow these three steps to use the code:
     ```
     ./run.sh [dataset] 
     ```
-    The dataset can be one of: 'yelp', 'amazon_game', or 'citeulike_t'.
+    The dataset can be one of: yelp, amazon_game, or citeulike_t.
 
 
 
