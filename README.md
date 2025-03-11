@@ -2,7 +2,7 @@
 This repository provides the source code of our paper: ["Collaborative Diffusion Model for Recommender System (CDiff4Rec)"](https://arxiv.org/abs/2501.18997), accepted as a short paper at WWW 2025.
 
 ### 1. Overview
-To effectively mitigate the loss of personalized information during noise additive process (forward process), CDiff4Rec generates pseudo-users from item features and leverages collaborative signals from both real and pseudo personalized neighbors.
+To effectively mitigate the loss of personalized information during the noise addition process in diffusion-based recommenders, CDiff4Rec generates pseudo-users from item features and leverages collaborative signals from both real and pseudo personalized neighbors.
 
 <img src="./figure/method.png">
 
