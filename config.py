@@ -41,11 +41,11 @@ def get_config():
 
     parser.add_argument('--tau', type=float, default=1.0, help='the temperature for consie similarity')
     parser.add_argument('--topk', type=int, default=10, help='he number of top-K similar interest users')
-    parser.add_argument('--topk_fake_user', type=int, default = 20000, help='quantity of pseudo-users')
+    parser.add_argument('--topk_pseudo_user', type=int, default = 20000, help='quantity of pseudo-users')
 
     parser.add_argument('--using_real', "--ur", action = argparse.BooleanOptionalAction, help = "whether using real users (--ur or --no-ur)")
-    parser.add_argument('--using_fake', "--uf", action = argparse.BooleanOptionalAction, help = "whether using psuedo-users (--uf or --no-uf)")
-    parser.add_argument('--training_fake', "--tf", action = argparse.BooleanOptionalAction, help = "whether training psuedo-users or not (--tf or --no-tf)")
+    parser.add_argument('--using_pseudo', "--uf", action = argparse.BooleanOptionalAction, help = "whether using psuedo-users (--uf or --no-uf)")
+    parser.add_argument('--training_pseudo', "--tf", action = argparse.BooleanOptionalAction, help = "whether training psuedo-users or not (--tf or --no-tf)")
     parser.add_argument('--r_agg',type = str, default = None, help = "att or avg or sim")
     parser.add_argument('--f_agg',type = str, default = None, help = "att or avg or sim")
 

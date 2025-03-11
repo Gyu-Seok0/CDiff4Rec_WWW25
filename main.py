@@ -31,7 +31,11 @@ def main(args):
     device = torch.device("cuda:0" if args.cuda else "cpu")
 
     print("device: ", device)
-    print("Starting time: ", time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
+    code_start_time = datetime.now()
+
+    # 시작 시간 출력
+    print("Start time:", code_start_time.strftime('%Y-%m-%d %H:%M:%S'))
+
 
     ######################################### Data #########################################
 
@@ -68,27 +72,27 @@ def main(args):
         r_topk_UU = keep_topk_values(r_cosine_sim.to(device), k = args.topk, fill_value = r_fill_value)
         r_topk_UU = r_topk_UU.double()
 
-    ######################################### Fake User #########################################
+    ######################################### pseudo User #########################################
 
-    print(f"Using_Fake = {args.using_fake}, f_agg = {args.f_agg}")
+    print(f"Using_pseudo = {args.using_pseudo}, f_agg = {args.f_agg}")
     
-    if args.using_fake:
+    if args.using_pseudo:
         
-        fake_data = load_pickle(pseudo_path) # keys: train_data, valid_y_data, test_y_data, n_user, n_item
-        f_train_data, f_valid_y_data, f_test_y_data, f_n_user, f_n_item = fake_data["train_data"], fake_data["valid_y_data"], fake_data["test_y_data"], fake_data["n_user"], fake_data["n_item"]
+        pseudo_data = load_pickle(pseudo_path) # keys: train_data, valid_y_data, test_y_data, n_user, n_item
+        f_train_data, f_valid_y_data, f_test_y_data, f_n_user, f_n_item = pseudo_data["train_data"], pseudo_data["valid_y_data"], pseudo_data["test_y_data"], pseudo_data["n_user"], pseudo_data["n_item"]
         
         print("num of f_train_data :", f_train_data.getnnz())
         print("num of f_valid_y_data :", f_valid_y_data.getnnz())
         print("num of f_test_y_data :", f_test_y_data.getnnz())
         
-        f_n_user = args.topk_fake_user
-        print(f"topk_fake_user = {args.topk_fake_user}")
+        f_n_user = args.topk_pseudo_user
+        print(f"topk_pseudo_user = {args.topk_pseudo_user}")
         
-        f_train_data_A = torch.FloatTensor(f_train_data.A)[:args.topk_fake_user]
+        f_train_data_A = torch.FloatTensor(f_train_data.A)[:args.topk_pseudo_user]
         f_train_dataset = data_utils.DataDiffusion_method(f_train_data_A)
         f_train_data_A = f_train_data_A.double().to_sparse().to(device)
 
-        f_cosine_sim = cosine_similarity(train_data, f_train_data)[:, :args.topk_fake_user] # User x topk_pu
+        f_cosine_sim = cosine_similarity(train_data, f_train_data)[:, :args.topk_pseudo_user] # User x topk_pu
         np.fill_diagonal(f_cosine_sim, 0.0)
         f_cosine_sim = torch.tensor(f_cosine_sim) / args.tau
 
@@ -96,8 +100,8 @@ def main(args):
         f_topk_UU = keep_topk_values(f_cosine_sim.to(device), k = args.topk, fill_value = f_fill_value)
         f_topk_UU = f_topk_UU.double()#.to(device)
             
-        print(f"Training_Fake = {args.training_fake}")
-        if args.training_fake:
+        print(f"Training_pseudo = {args.training_pseudo}")
+        if args.training_pseudo:
             train_dataset = data_utils.ConcatDataset(train_dataset, f_train_dataset)
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, pin_memory=True, shuffle=True)
@@ -111,7 +115,7 @@ def main(args):
     print('data ready.')
     ######################################### Global Attention #########################################
 
-    if args.using_real and args.using_fake:
+    if args.using_real and args.using_pseudo:
         alpha = args.alpha
         beta = args.beta
         gamma = args.gamma
@@ -121,7 +125,7 @@ def main(args):
         beta = 1 - args.alpha
         gamma = 0.0
         
-    elif args.using_fake:
+    elif args.using_pseudo:
         alpha = args.alpha
         beta = 0.0
         gamma = 1 - args.alpha
@@ -201,9 +205,9 @@ def main(args):
         total_r_loss = 0.0
         total_f_loss = 0.0
 
-        for batch_idx, batch in enumerate(tqdm(train_loader)):
+        for batch_idx, batch in enumerate(train_loader):
             with torch.cuda.amp.autocast():
-                if args.training_fake:
+                if args.training_pseudo:
                     r_batch_user, r_idxs = batch[0][0], batch[0][1]
                     f_batch_user, f_idxs = batch[1][0], batch[1][1]
                     f_batch_user = f_batch_user.to(device)
@@ -229,9 +233,9 @@ def main(args):
                     elif args.r_agg == "att":
                         r_batch_info = att_model.forward(x1 = r_model_output.float(), label_map = r_batch_weight)
                         
-                if args.using_fake:
-                    if args.training_fake:
-                        f_batch_weight = f_topk_UU[r_idxs, :][:, f_idxs].to(device) # batch_real_user x batch_fake_user
+                if args.using_pseudo:
+                    if args.training_pseudo:
+                        f_batch_weight = f_topk_UU[r_idxs, :][:, f_idxs].to(device) # batch_real_user x batch_pseudo_user
                         
                         if args.f_agg in ["avg", "sim"]:
                             f_batch_info = torch.spmm(f_batch_weight.to_sparse(), f_model_output) # batch_real_user x Item
@@ -242,7 +246,7 @@ def main(args):
                                                             label_map = f_batch_weight)
                         
                     else:
-                        f_batch_weight = f_topk_UU[r_idxs, :].to(device) # real_user x total_fake_user
+                        f_batch_weight = f_topk_UU[r_idxs, :].to(device) # real_user x total_pseudo_user
                         
                         assert args.f_agg != "att"
 
@@ -282,7 +286,7 @@ def main(args):
                 best_test_results = test_results
         
         print("Runing Epoch {:03d} ".format(epoch) + 'train loss {:.4f} '.format(total_loss) + 
-            'real_user_loss {:.4f} '.format(total_r_loss) + 'fake_user_loss {:.4f} '.format(total_f_loss) +
+            'real_user_loss {:.4f} '.format(total_r_loss) + 'pseudo_user_loss {:.4f} '.format(total_f_loss) +
             "time costs: " + time.strftime("%H: %M: %S", time.gmtime(time.time()-start_time)))
         print('---'*18)
         
@@ -301,8 +305,20 @@ def main(args):
         
     print('==='*18)
     print("End. Best Epoch {:03d} ".format(best_epoch))
-    evaluate_utils.print_results(None, best_results, best_test_results)   
-    print("End time: ", time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
+    evaluate_utils.print_results(None, best_results, best_test_results)
+    
+    # 종료 시간 출력
+    end_time = datetime.now()
+    print("End time:", end_time.strftime('%Y-%m-%d %H:%M:%S'))
+    
+    time_difference = end_time - code_start_time
+    total_seconds = int(time_difference.total_seconds())
+
+    # 분과 초 변환
+    minutes, seconds = divmod(total_seconds, 60)
+
+
+    print(f"[Wall Time] Time difference: {minutes}:{seconds}")
     print_command_args(args)
 
 if __name__ == "__main__":

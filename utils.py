@@ -80,12 +80,15 @@ def set_random_seed(random_seed):
     np.random.seed(random_seed)
     random.seed(random_seed)
 
+# 각 행의 norm을 계산하여 정규화
 def get_cos_similarity_mat(M):
     row_norms = np.sqrt((M.multiply(M)).sum(axis=1))
     norm_M = M / np.clip(row_norms, a_min=1e-8, a_max=None)
 
+    # 코사인 유사도 계산
     similarity = cosine_similarity(norm_M)
 
+    # 대각선 원소를 0으로 설정
     np.fill_diagonal(similarity, 0.0)
     
     return torch.tensor(similarity)
@@ -132,14 +135,14 @@ def evaluate(model, diffusion, data_loader, data_te,
     
     r_predictions = torch.zeros((n_user, n_item)).double().to(device)
     
-    if args.using_fake:
+    if args.using_pseudo:
         f_predictions = torch.zeros((f_n_user, n_item)).double().to(device)
 
     print("Start evaluating...")
     with torch.no_grad():
-        for batch_idx, batch in enumerate(tqdm(data_loader)):
+        for batch_idx, batch in enumerate(data_loader):
             
-            if args.training_fake:
+            if args.training_pseudo:
                 r_batch_user, r_idxs = batch[0][0], batch[0][1]
                 f_batch_user, f_idxs = batch[1][0], batch[1][1]
                 
@@ -159,8 +162,8 @@ def evaluate(model, diffusion, data_loader, data_te,
             else:
                 r_info = torch.spmm(r_topk_UU.to_sparse().to(device), r_predictions)
         
-        if args.using_fake:
-            if args.training_fake:
+        if args.using_pseudo:
+            if args.training_pseudo:
                 if args.f_agg == "att":
                     f_info = torch.spmm((f_topk_UU / args.topk).to_sparse().to(device), f_predictions)
                 else:
