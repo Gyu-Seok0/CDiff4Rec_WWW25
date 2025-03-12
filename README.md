@@ -21,7 +21,7 @@ Follow these three steps to use the code:
 ### 3. Environment
 Building upon [DiffRec](https://github.com/YiyanXu/DiffRec), our code is implemented in Python 3.9.0 and requires the following dependencies:
 
-* pytorch==1.13.1
+* pytorch=1.13.1
 * pytorch-cuda=11.6
 * numpy=1.24.3
   
